@@ -3,17 +3,75 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use App\Controller\ActivationController;
+use App\Controller\RegistrationController;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UlidType;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Uid\Ulid;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-#[ApiResource]
+#[ApiResource(operations: [
+    new Get(),
+    new GetCollection(),
+    new Post(),
+    new Put(),
+    new Patch(),
+    new Delete(),
+    new Get(
+        name: 'user_activate',
+        read: false,
+        uriTemplate: '/users/activate/{token}',
+        controller: ActivationController::class . '::activate',
+        openapiContext: [
+            'summary' => 'Activate user',
+            'description' => 'After registration, users are create in an unactive state and cannot interact with the application. Use this action to activate one with its registration token.',
+            'parameters' => [
+                [
+                    'name' => 'token',
+                    'in' => 'path',
+                    'required' => true,
+                    'schema' => [
+                        'type' => 'string'
+                    ]
+                ]
+            ]
+        ]
+    ),
+    new Post(
+        name: 'user_register',
+        uriTemplate: '/users/register',
+        controller: RegistrationController::class . '::register',
+        openapiContext: [
+            'summary' => 'Register a new user',
+            'description' => 'Registers a new user and sends an activation email',
+            'requestBody' => [
+                'content' => [
+                    'application/json' => [
+                        'schema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'email' => ['type' => 'string', 'format' => 'email'],
+                                'password' => ['type' => 'string'],
+                            ],
+                            'required' => ['email', 'password'],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ),
+])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     private ?string $plainPassword = null;
@@ -51,6 +109,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     private ?string $password = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $active = null;
+
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $activationToken = null;
 
     public function getId(): ?Ulid
     {
@@ -125,5 +189,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    public function isActive(): ?bool
+    {
+        return $this->active;
+    }
+
+    public function setActive(bool $active): static
+    {
+        $this->active = $active;
+
+        return $this;
+    }
+
+    public function getActivationToken(): ?string
+    {
+        return $this->activationToken;
+    }
+
+    public function setActivationToken(?string $activationToken): static
+    {
+        $this->activationToken = $activationToken;
+
+        return $this;
     }
 }
