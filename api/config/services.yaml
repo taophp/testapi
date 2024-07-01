@@ -28,3 +28,11 @@ services:
             tags:
                 - { name: doctrine.event_listener, event: prePersist }
                 - { name: doctrine.event_listener, event: preUpdate }
+
+    App\Swagger\SwaggerUiProvider:
+        decorates: 'api_platform.swagger_ui.provider'
+        arguments: ['@App\Swagger\SwaggerUiProvider.inner']
+        autoconfigure: false
+        autowire: true
+        public: true
+
