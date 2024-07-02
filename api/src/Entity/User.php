@@ -17,6 +17,7 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
+use App\Swagger\SwaggerUiProvider;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -33,6 +34,7 @@ use ApiPlatform\Metadata\Delete;
         read: false,
         uriTemplate: '/users/activate/{token}',
         controller: ActivationController::class . '::activate',
+        defaults: [SwaggerUiProvider::DISABLE_SWAGGER => true],
         openapiContext: [
             'summary' => 'Activate user',
             'description' => 'After registration, users are create in an unactive state and cannot interact with the application. Use this action to activate one with its registration token.',
