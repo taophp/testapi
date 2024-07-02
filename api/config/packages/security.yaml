@@ -38,7 +38,9 @@ security:
         - { path: ^/users/activate/.*$, roles: PUBLIC_ACCESS }
         - { path: ^/docs, roles: PUBLIC_ACCESS } # Allows accessing the Swagger UI docs
         - { path: ^/auth, roles: PUBLIC_ACCESS }
-        - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/, roles: IS_AUTHENTICATED_FULLY, allow_if: "is_granted('ROLE_USER') and user.isActive()" }
+
+ 
 
 
 when@test:
